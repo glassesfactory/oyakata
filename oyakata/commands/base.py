@@ -39,4 +39,19 @@ class Command(object):
     def copy(self):
         return copy.copy(self)
 
+    def parse_concurrency(self, args):
+        if not '--concurrency' in args:
+            return {}
+        settings = {}
+        for setting in args['--concurrency']:
+            kv = setting.split('=')
+            if len(kv) == 2:
+                key = kv[0].strip()
+                try:
+                    v = int(kv[1].strip())
+                except ValueError:
+                    continue
+                settings[key] = v
+        return settings
+
 Command = CommandMeta('Command', (Command,), {})

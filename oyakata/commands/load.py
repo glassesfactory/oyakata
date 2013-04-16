@@ -8,7 +8,13 @@ from oyakata.procfile import Procfile
 
 class Load(Command):
     """
-    usage: oyakata load
+    usage: oyakata load [-c concurrency|--concurrency concurrency]...
+                        [--app APP] [<file>]
+
+    -h, --help
+    -c concurrency,--concurrency concurrency  Specify the number processesses
+                                              to run.
+    --app APP
     """
 
     name = "load"
@@ -24,17 +30,24 @@ class Load(Command):
                 raise RuntimeError("procfile %r not found" % proc)
             else:
                 return None
-        self.load_procfile(proc)
+        self.load_procfile(proc, args)
 
-    def load_procfile(self, procfile):
+    def load_procfile(self, procfile, args):
         # procfile = Procfile()
-        print procfile
         proc = Procfile(procfile)
+        appname = "unko"
+        # server = 
         print proc
-        # with open() as f:
-            # for line in f.readlines():
-                # match = re.search(r'([a-zA-Z0-9_-]+):(.*)', line)
-                # if not match:
-                    # raise Exception('Bad Procfile line.')
-                # procfile[match.group(1)] = match.group(2)
-        print procfile
+        concurrency = self.parse_concurrency(args)
+
+        for name, cmd_str in proc.processes():
+            print name, cmd_str
+            cmd, args = proc.parse_cmd(cmd_str)
+            print cmd, args
+            params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
+            try:
+                # server.load(params, sessionid=appname)
+                print params
+            except:
+                print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"
+        print "==> %r has been loaded in %s" % (appname, "http://127.0.0.1:6969")
