@@ -6,8 +6,9 @@ from .base import Command
 
 class Romuska(Command):
     """
-    usage: oyakata musuka
+    usage: oyakata muska
     """
+
     name = "muska"
     short_descr = "Romuska Palo Ur Laputa"
 

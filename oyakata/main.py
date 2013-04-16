@@ -13,7 +13,7 @@ Options:
 """
 
 import sys
-# import __version__
+from . import __version__
 from oyakata.commands import get_commands
 from docopt import docopt
 
@@ -22,8 +22,7 @@ class OyakataCli(object):
     def __init__(self, argv=None):
 
         self.commands = get_commands()
-        #version_str = "oyakata version %s" % __version__
-        version_str = "oyakata version %s" % "0.1"
+        version_str = "oyakata version %s" % __version__
         doc_str = "%s%s" % (__doc__, self._commands_help())
         self.args = docopt(doc_str, argv=argv, version=version_str, options_first=True)
 
@@ -51,9 +50,15 @@ class OyakataCli(object):
         sys.exit(0)
 
     def display_help(self):
+        u"""
+        ヘルプ表示
+        """
         return
 
     def _commands_help(self):
+        u"""
+        コマンドのヘルプを拾い上げて結合する。
+        """
         commands = [name for name in self.commands] + ["help"]
         max_len = len(max(commands, key=len))
         output = ["Commands:",
