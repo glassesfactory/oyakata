@@ -4,6 +4,8 @@
 import os
 from .base import Command
 from oyakata.procfile import Procfile
+# from oyakata.httpclient import Client
+import reqests
 
 
 class Load(Command):
@@ -35,10 +37,8 @@ class Load(Command):
     def load_procfile(self, procfile, args):
         # procfile = Procfile()
         proc = Procfile(procfile)
-        appname = "unko"
-        # server = 
-        print proc
         concurrency = self.parse_concurrency(args)
+        appname = "unko"
 
         for name, cmd_str in proc.processes():
             print name, cmd_str
@@ -46,7 +46,7 @@ class Load(Command):
             print cmd, args
             params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
             try:
-                # server.load(params, sessionid=appname)
+                res = requests.post()
                 print params
             except:
                 print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-usage: oyakata [--version] [-f procfile|--procfile procfile] [-r root|--root root] <command> [<args>...]
+usage: oyakata [--version] [-f procfile|--procfile procfile] [-r root|--root root] [-u url|--url url] <command> [<args>...]
 
 Options:
 
@@ -9,6 +9,8 @@ Options:
     --version                           show version
     -f procfile, --procfile procfile    Procfile
     -r root, --root, root               Application Root
+    -u url, --url url                   Oyakata Server Remote URL.
+
 
 """
 
