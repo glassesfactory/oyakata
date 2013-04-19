@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
 import sys
 import copy
 import argparse
@@ -10,7 +11,7 @@ KNOWN_COMMANDS = []
 
 
 def get_commands():
-    commands = {}
+    commands = OrderedDict()
     for c in KNOWN_COMMANDS:
         cmd = c()
         commands[c.name] = cmd.copy()
@@ -33,7 +34,7 @@ class Command(object):
     u"""
     oyakata Command Base Class
     """
-    def run(self):
+    def run(self, args, config):
         raise NotImplementedError
 
     def copy(self):

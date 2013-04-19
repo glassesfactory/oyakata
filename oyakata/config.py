@@ -9,9 +9,8 @@ class Config(object):
     """
     oyakata config obj
     """
-    def __init__(self):
-        print "oppai"
-        self.server = None
+    def __init__(self, args):
+        self.server = args['--url'] or 'http://127.0.0.1:8823'
 
 
 class OyakatadConfig(object):
@@ -66,6 +65,10 @@ class OyakatadConfig(object):
             self.log_format = oyakata_cfg.get("log_format", "ltsv")
             self.uid = oyakata_cfg.get("uid", None)
             self.gid = oyakata_cfg.get("gid", None)
+
+    def get_bind(self):
+        address = self.bind.split(':')
+        return (address[0], int(address[1]))
 
     #u-n
     def _set_defaults(self):

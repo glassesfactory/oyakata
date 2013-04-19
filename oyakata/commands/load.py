@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import requests
 from .base import Command
 from oyakata.procfile import Procfile
-# from oyakata.httpclient import Client
-import reqests
+from oyakata.process import ProcessConfig
 
 
 class Load(Command):
@@ -22,7 +22,7 @@ class Load(Command):
     name = "load"
     short_descr = "load a Procfile application"
 
-    def run(self, args):
+    def run(self, args, config):
         proc = "Procfile"
         if '--procfile' in args:
             proc = args['--procfile']
@@ -32,6 +32,7 @@ class Load(Command):
                 raise RuntimeError("procfile %r not found" % proc)
             else:
                 return None
+        self.config = config
         self.load_procfile(proc, args)
 
     def load_procfile(self, procfile, args):
@@ -46,8 +47,12 @@ class Load(Command):
             print cmd, args
             params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
             try:
-                res = requests.post()
-                print params
+                url = self.config.server + '/jobs/%s' % appname
+                config = ProcessConfig(name, cmd, **params).to_dict()
+                print config
+                res = requests.post(url, config)
+                print res
             except:
-                print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"
-        print "==> %r has been loaded in %s" % (appname, "http://127.0.0.1:6969")
+                raise
+                # print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"
+        print "==> %r has been loaded in %s" % (appname, "http://127.0.0.1:8823")

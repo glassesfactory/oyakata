@@ -32,22 +32,56 @@ class OyakataServer(object):
     def __init__(self, config):
         self.config = config
         self.pid = None
-        self.jobs = []
-        self._load_jobs()
+        self._jobs = []
+        self._load_registerd_jobs()
+
+    def jobs(self,  method, *args, **kwargs):
+        print "jobs", args
+        environ = kwargs["environ"]
+        params = self._parse_params(environ['wsgi.input'].read())
+        print params
+        if method == "post":
+            """
+            register new job
+            """
+            print ""
+        elif method == "delete":
+            """
+            delete jobs
+            """
+            print "stop"
+        elif method == "put":
+            """
+            update jobs
+            """
+
+        return "ok"
+
+    def manage(self, method, *args, **kwargs):
+        print "manage process"
 
     def wsgi_app(self, environ, start_response):
         params = environ.get('PATH_INFO').split('/')[1:]
-        if 'jobs' == params[0]:
-            print "hoge"
+        method = environ["REQUEST_METHOD"].lower()
 
-        status = "200 OK"
-        res = "unnbaba"
+        if hasattr(self, str(params[0])):
+            res = getattr(self, params[0])(method=method, environ=environ, *[start_response, params])
+            status = "200 OK"
+        else:
+            staus = "500"
+            res = "oh"
         response_headers = [('Content-type', 'text/plain'), ('Content-Length', str(len(res)))]
         start_response(status, response_headers)
         return [res]
 
-    def _load_jobs(self):
+    def _load_registerd_jobs(self):
+        # with open(jobs_file) as f:
+            # for line in f.readline():
+                # print line
         return
+
+    def _parse_params(self, param_str):
+        return dict([tuple(arg.split("=")) for arg in param_str.split('&')])
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -59,7 +93,8 @@ def run():
         config = OyakatadConfig(args, "")
         config.load()
         s = OyakataServer(config)
-        server.listen(('0.0.0.0', 8823))
+        bind = config.get_bind()
+        server.listen((bind[0], bind[1]))
         server.run(s)
     except KeyboardInterrupt:
         pass

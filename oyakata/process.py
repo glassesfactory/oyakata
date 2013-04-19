@@ -40,7 +40,7 @@ class ProcessManager(object):
             self.running = True
             while self.running:
                 pass
-        except sleect.error:
+        except select.error:
             pass
         finally:
             logger = self.loggers['system']
@@ -50,4 +50,16 @@ class ProcessManager(object):
 
     def interrupt(self):
         self.running = False
+
+
+class ProcessConfig(object):
+    def __init__(self, name, cmd, **settings):
+        self.name = name
+        self.cmd = cmd
+        self.settings = settings
+
+    def to_dict(self):
+        d = dict(name=self.name, cmd=self.cmd)
+        d.update(self.settings)
+        return d
 

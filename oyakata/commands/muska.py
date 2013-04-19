@@ -12,7 +12,7 @@ class Romuska(Command):
     name = "muska"
     short_descr = "Romuska Palo Ur Laputa"
 
-    def run(self, args):
+    def run(self, args, config):
         print "\n"
         print "　　　　　／　　,　　　　　　　　　　　　　　　＼"
         print "　　　 ／　　 / l　　　　　　　　　　　　　　　　 ヽ"

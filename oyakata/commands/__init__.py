@@ -4,8 +4,13 @@
 from oyakata.commands import (
     load,
     unload,
+    reload,
     bals,
-    muska
+    muska,
+    start,
+    stop,
+    restart,
+    list
     )
 
 from oyakata.commands.base import get_commands

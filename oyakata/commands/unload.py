@@ -11,5 +11,5 @@ class Unload(Command):
     name = 'unload'
     short_descr = "unload a Procfile application"
 
-    def run(self, args):
+    def run(self, args, config):
         return
