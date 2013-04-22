@@ -20,6 +20,7 @@ class Procfile(object):
         self.gid = None
 
         self.settings = self.parse(self.procfile)
+        self._appname = None
 
     def processes(self):
         return self.settings.items()
@@ -36,10 +37,15 @@ class Procfile(object):
 
     def parse_cmd(self, v):
         args_ = shlex.split(v)
-        print args_
         cmd = args_[0]
         if len(args_) > 1:
             args = args_[1]
         else:
             args = []
         return cmd, args
+
+    def get_appname(self):
+        if not self._appname:
+            path = os.getcwd() if self.root == "." else self.root
+            self._appname = os.path.split(path)[1]
+        return self._appname

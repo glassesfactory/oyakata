@@ -19,10 +19,13 @@ Options
 """
 
 import sys
+from setproctitle import setproctitle
 from meinheld import server
 from docopt import docopt
 from . import __version__
 from oyakata.config import OyakatadConfig
+from oyakata.error import ProcessError
+from oyakata.process import ProcessManager, ProcessConfig
 
 LOG_ERROR_FORMAT = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
 LOG_DATE_FORMAT = r"%Y-%m-%d %H:%M:%S"
@@ -32,32 +35,43 @@ class OyakataServer(object):
     def __init__(self, config):
         self.config = config
         self.pid = None
-        self._jobs = []
-        self._load_registerd_jobs()
+        self.manager = ProcessManager(config)
+        setproctitle('oyakatad')
 
-    def jobs(self,  method, *args, **kwargs):
-        print "jobs", args
+    def jobs(self, *args, **kwargs):
         environ = kwargs["environ"]
+        method = kwargs["method"]
+        sessionid = args[1][1]
         params = self._parse_params(environ['wsgi.input'].read())
-        print params
         if method == "post":
             """
             register new job
             """
-            print ""
+            print "resiger new job"
+            name = params.pop("name")
+            cmd = params.pop("cmd")
+            config = ProcessConfig(name, cmd, **params)
+            try:
+                self.manager.load(config, sessionid)
+                res = "OK"
+                status = "200 OK"
+            except ProcessError as e:
+                res = e.reason
+                status = str(e.errno)
+
         elif method == "delete":
             """
             delete jobs
             """
-            print "stop"
+            print "unload job"
         elif method == "put":
             """
             update jobs
             """
+            print "put"
+        return status, res
 
-        return "ok"
-
-    def manage(self, method, *args, **kwargs):
+    def manage(self, *args, **kwargs):
         print "manage process"
 
     def wsgi_app(self, environ, start_response):
@@ -65,20 +79,14 @@ class OyakataServer(object):
         method = environ["REQUEST_METHOD"].lower()
 
         if hasattr(self, str(params[0])):
-            res = getattr(self, params[0])(method=method, environ=environ, *[start_response, params])
-            status = "200 OK"
+            kwargs = {"method": method, "environ": environ}
+            status, res = getattr(self, params[0])(*[start_response, params], **kwargs)
         else:
-            staus = "500"
+            status = "500"
             res = "oh"
         response_headers = [('Content-type', 'text/plain'), ('Content-Length', str(len(res)))]
         start_response(status, response_headers)
         return [res]
-
-    def _load_registerd_jobs(self):
-        # with open(jobs_file) as f:
-            # for line in f.readline():
-                # print line
-        return
 
     def _parse_params(self, param_str):
         return dict([tuple(arg.split("=")) for arg in param_str.split('&')])

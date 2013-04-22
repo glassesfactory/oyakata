@@ -65,6 +65,7 @@ class OyakatadConfig(object):
             self.log_format = oyakata_cfg.get("log_format", "ltsv")
             self.uid = oyakata_cfg.get("uid", None)
             self.gid = oyakata_cfg.get("gid", None)
+            self.jobs_file = oyakata_cfg.get("jobs_file", "oyakata_jobs.dat")
 
     def get_bind(self):
         address = self.bind.split(':')
@@ -82,3 +83,9 @@ class OyakatadConfig(object):
 
         self.uid = None
         self.gid = None
+
+    def to_dict(self):
+        pass
+
+    def to_json(self):
+        pass

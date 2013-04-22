@@ -25,12 +25,16 @@ setup(name='oyakata',
     version="0.1.0",
     description = 'simple system process manager',
     classifiers = CLASSIFIERS,
-    license = 'MIT',  
+    license = 'MIT',
     author = 'Yamaguchi Eikichi',
-    author_email = 'info@hageee.net',
+    author_email = 'info@kageya.ma',
     packages=find_packages(),
     install_requires = [
       'docopt',
+      'requests',
+      'toml-python',
+      'meinheld',
+      'ltsv'
     ],
     entry_points="""
       [console_scripts]

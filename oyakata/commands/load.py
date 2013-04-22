@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import requests
 from .base import Command
+from oyakata.error import ProcessError, ProcessConflict
 from oyakata.procfile import Procfile
 from oyakata.process import ProcessConfig
 
@@ -39,20 +41,23 @@ class Load(Command):
         # procfile = Procfile()
         proc = Procfile(procfile)
         concurrency = self.parse_concurrency(args)
-        appname = "unko"
+        appname = self.default_appname(proc, args)
 
         for name, cmd_str in proc.processes():
-            print name, cmd_str
             cmd, args = proc.parse_cmd(cmd_str)
-            print cmd, args
             params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
             try:
                 url = self.config.server + '/jobs/%s' % appname
                 config = ProcessConfig(name, cmd, **params).to_dict()
-                print config
                 res = requests.post(url, config)
-                print res
+                if res.status_code != 200:
+                    if res.status_code == 409:
+                        print "%r is already loaded." % appname
+                    else:
+                        print res
+                    sys.exit(1)
             except:
                 raise
+                sys.exit(1)
                 # print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"
         print "==> %r has been loaded in %s" % (appname, "http://127.0.0.1:8823")
