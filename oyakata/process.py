@@ -35,9 +35,23 @@ class ProcessManager(object):
         self._load_registerd_jobs()
 
     def load(self, config, sessionid):
+        print "load and save process"
         print "in processmanager::", config, sessionid
         print "----------------\n"
 
+        try:
+            self._load_process(config, sessionid)
+        except:
+            print "o"
+            return
+
+        self._save_job(sessionid, config)
+        # jobs_json = json.loads(f.rea
+        # print jobs_json
+        # p = subprocess.Popen()
+        return
+
+    def _load_process(self, config, sessionid):
         if sessionid in self._sessions:
             raise ProcessConflict()
         cmd = config.cmd
@@ -53,14 +67,8 @@ class ProcessManager(object):
         self.loggers[p.pid] = logger = _create_logger('%s.%d' % (name, 1 + 1))
         logger.info('started with pid')
 
-        jobs_path = self.config.jobs_file
-        self._save_job(sessionid, config)
-        # jobs_json = json.loads(f.rea
-        # print jobs_json
-        # p = subprocess.Popen()
-        return
-
     def _load_registerd_jobs(self):
+        print "?????"
         jobs_path = self.config.jobs_file
         if not os.path.isfile(jobs_path):
             return
@@ -74,26 +82,32 @@ class ProcessManager(object):
 
         jobs = self.jobs_list["oyakata_jobs"]
         for job in jobs:
+            print job
             sessionid = job.keys()[0]
-            config = job[sessionid]
-            print config
+            config_dict = job[sessionid]
+            config = ProcessConfig.from_dict(config_dict)
+            self._load_process(config, sessionid)
+            # self.load(config, sessionid, False)
         return
 
     def _init_jobs_file(self):
         jobs_path = self.config.jobs_file
         with open(jobs_path, "r+") as f:
-            jobs_list = json.dumps({"oyakata_jobs": []})
-            f.write(jobs_list)
+            jobs_list = {"oyakata_jobs": []}
+            dump = json.dumps(jobs_list)
+            f.write(dump)
         self.jobs_list = jobs_list
 
     def _save_job(self, sessionid, config):
         job = {}
         job[sessionid] = config.to_dict()
+        print type(self.jobs_list)
         self.jobs_list["oyakata_jobs"].append(job)
         jobs_path = self.config.jobs_file
         with open(jobs_path, "w") as f:
             try:
                 f.seek(0)
+                print self.jobs_list
                 f.write(json.dumps(self.jobs_list))
                 f.truncate()
             except IOError:
@@ -150,6 +164,16 @@ class ProcessConfig(object):
         self.name = name
         self.cmd = cmd
         self.settings = settings
+
+    @classmethod
+    def from_dict(cls, config):
+        d = config.copy()
+        try:
+            name = d.pop('name')
+            cmd = d.pop('cmd')
+        except KeyError:
+            raise ValueError('invalid dict....')
+        return cls(name, cmd, **d)
 
     def to_dict(self):
         d = dict(name=self.name, cmd=self.cmd)

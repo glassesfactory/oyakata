@@ -40,6 +40,17 @@ class Command(object):
     def copy(self):
         return copy.copy(self)
 
+    def default_appname(self, procfile, args):
+        if args['--app']:
+            appname = args['--app']
+            if appname == ".":
+                appname = procfile.get_appname()
+        elif procfile is not None:
+            appname = procfile.get_appname()
+        else:
+            appname = "default"
+        return appname
+
     def parse_concurrency(self, args):
         if not '--concurrency' in args:
             return {}
