@@ -1,7 +1,7 @@
 oyakata
 ==========
 
-親方!空から女の子が!  
+**親方!空から女の子が!**  
 と言った時、  
 Procfile を元に2番のバルブを閉めろと返してくれるアプリケーションです。
 
@@ -40,6 +40,10 @@ inspired [gaffer](https://github.com/benoitc/gaffer)
 ####親方に新しい設定で仕事をやり直してもらいます。
 
 `oyakata reload`
+
+####政府の密命
+
+`oyakata muska`
 
 もっと詳しい使い方はドキュメントを読んで下さい。
 
