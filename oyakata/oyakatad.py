@@ -42,12 +42,13 @@ class OyakataServer(object):
         environ = kwargs["environ"]
         method = kwargs["method"]
         sessionid = args[1][1]
-        params = self._parse_params(environ['wsgi.input'].read())
+        #u-mu
         if method == "post":
             """
             register new job
             """
             print "resiger new job"
+            params = self._parse_params(environ['wsgi.input'].read())
             name = params.pop("name")
             cmd = params.pop("cmd")
             config = ProcessConfig(name, cmd, **params)
@@ -58,21 +59,39 @@ class OyakataServer(object):
             except ProcessError as e:
                 res = e.reason
                 status = str(e.errno)
-
         elif method == "delete":
             """
             delete jobs
             """
             print "unload job"
+            name = args[1][2]
+            try:
+                print "uwaaaaa"
+                self.manager.unload(sessionid, name)
+                res = "UNLOADED"
+                status = "200 OK"
+            except ProcessError as e:
+                res = e.reason
+                status = str(e.errno)
         elif method == "put":
             """
             update jobs
             """
             print "put"
+            try:
+                self.manager.update(config, sessionid)
+                res = "OK"
+                status = "200 OK"
+            except ProcessError as e:
+                res = e.reason
+                status = str(e.errno)
+
         return status, res
 
     def manage(self, *args, **kwargs):
         print "manage process"
+        sessionid = args[1][1]
+        params = self._parse_params(environ['wsgi.input'].read())
 
     def wsgi_app(self, environ, start_response):
         params = environ.get('PATH_INFO').split('/')[1:]

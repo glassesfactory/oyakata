@@ -11,6 +11,11 @@ class ProcessError(Exception):
         return "%s: %s" % (self.errno, self.reason)
 
 
+class ProcessNotFound(ProcessError):
+    def __init__(self, reason="not_found"):
+        ProcessError.__init__(self, errno=404, reason=reason)
+
+
 class ProcessConflict(ProcessError):
     def __init__(self, reason="process_conflict"):
         ProcessError.__init__(self, errno=409, reason=reason)
