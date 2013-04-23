@@ -55,18 +55,16 @@ class ProcessManager(object):
         print "unload and delete process from config file."
         if not sessionid in self._sessions:
             raise ProcessNotFound()
-        else:
-            print "uwaaaaa"
 
         print self._sessions[sessionid]
         state = self._sessions[sessionid][name]
         config = state.config
         try:
             self._unload_process(state, config, sessionid)
-            print "oppai"
         except ProcessError:
             raise
-        # self._delete_job(sessionid, config)
+        #remove job from jobfile
+        self._delete_job(sessionid, config)
 
     def _load_process(self, config, sessionid):
         if sessionid in self._sessions:
@@ -88,13 +86,11 @@ class ProcessManager(object):
             self.stop_job(state)
         except:
             raise
-        u"""del のほうがいいのかな"""
-        # self._sessions[sessionid].pop(config.name)
-        # try:
-            # del self._sessions[sessionid]
-        # except KeyError:
-            # pass
-        # self._sessions.pop(sessionid)
+        self._sessions[sessionid].pop(config.name)
+        try:
+            del self._sessions[sessionid]
+        except KeyError:
+            pass
 
     def start_job(self, state):
         u"""job を開始する"""
@@ -126,6 +122,7 @@ class ProcessManager(object):
         num_to_start = state.numprocess - len(state.running)
         for i in range(num_to_start):
             self._spawn_process(state)
+        # logger.info('started with pid')
 
     def _spawn_process(self, state):
         u"""process を立ち上げる"""
@@ -133,8 +130,6 @@ class ProcessManager(object):
         state.queue(p)
         pid = p.pid
         self.running_process[pid] = p
-        self.loggers[pid] = logger = _create_logger('%s.%d' % (state.config.name, 1 + 1))
-        logger.info('started with pid')
 
     def _load_registerd_jobs(self):
         u"""job list に登録済みのprocessを立ち上げる"""
