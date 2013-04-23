@@ -57,7 +57,7 @@ class Load(Command):
                         print res
                     sys.exit(1)
             except ConnectionError:
-                print "not found oyakata server..."
+                print "oyakata server is not found..."
                 sys.exit(1)
             except:
                 raise

@@ -39,9 +39,7 @@ class ProcessManager(object):
         self._load_registerd_jobs()
 
     def load(self, config, sessionid):
-        print "load and save process to config file."
-        print "in processmanager::", config, sessionid
-        print "----------------\n"
+        u"""load new application and add job to jobfile"""
 
         try:
             self._load_process(config, sessionid)
@@ -52,7 +50,7 @@ class ProcessManager(object):
         return
 
     def unload(self, sessionid, name):
-        print "unload and delete process from config file."
+        u"""unload application and remove job from jobfile"""
         if not sessionid in self._sessions:
             raise ProcessNotFound()
 
@@ -66,7 +64,12 @@ class ProcessManager(object):
         #remove job from jobfile
         self._delete_job(sessionid, config)
 
+    def reload(self, sessionid, config):
+        u"""reload process from updated config"""
+        pass
+
     def _load_process(self, config, sessionid):
+        u"""processを読み込む"""
         if sessionid in self._sessions:
             raise ProcessConflict()
         else:
@@ -76,7 +79,10 @@ class ProcessManager(object):
             state = ProcessState(config, sessionid)
             self._sessions[sessionid][config.name] = state
 
+        #job の開始
         self.start_job(state)
+
+        #logging
         # self.loggers[p.pid] = logger = _create_logger('%s.%d' % (name, 1 + 1))
         # logger.info('started with pid')
 
