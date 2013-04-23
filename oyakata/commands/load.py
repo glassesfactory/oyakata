@@ -16,10 +16,11 @@ class Load(Command):
     usage: oyakata load [-c concurrency|--concurrency concurrency]...
                         [--app APP] [<file>]
 
-    -h, --help
-    -c concurrency,--concurrency concurrency  Specify the number processesses
-                                              to run.
-    --app APP
+    Options:
+        -h, --help
+        -c concurrency,--concurrency concurrency  Specify the number processesses
+                                                  to run.
+        --app APP
     """
 
     name = "load"
