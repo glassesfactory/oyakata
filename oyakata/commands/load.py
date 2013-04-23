@@ -4,6 +4,7 @@
 import os
 import sys
 import requests
+from requests.exceptions import ConnectionError
 from .base import Command
 from oyakata.error import ProcessError, ProcessConflict
 from oyakata.procfile import Procfile
@@ -38,7 +39,6 @@ class Load(Command):
         self.load_procfile(proc, args)
 
     def load_procfile(self, procfile, args):
-        # procfile = Procfile()
         proc = Procfile(procfile)
         concurrency = self.parse_concurrency(args)
         appname = self.default_appname(proc, args)
@@ -56,8 +56,10 @@ class Load(Command):
                     else:
                         print res
                     sys.exit(1)
+            except ConnectionError:
+                print "not found oyakata server..."
+                sys.exit(1)
             except:
                 raise
                 sys.exit(1)
-                # print u"おんなじ名前のやつがもう動いてる☆〜（ゝ。∂）"
         print "==> %r has been loaded in %s" % (appname, "http://127.0.0.1:8823")
