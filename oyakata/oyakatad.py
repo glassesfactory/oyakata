@@ -48,7 +48,6 @@ class OyakataServer(object):
             """
             register new job
             """
-            print "resiger new job"
             config = self._get_config(environ)
             try:
                 self.manager.load(config, sessionid)
@@ -61,10 +60,8 @@ class OyakataServer(object):
             """
             delete jobs
             """
-            print "unload job"
             name = args[1][2]
             try:
-                print "uwaaaaa"
                 self.manager.unload(sessionid, name)
                 res = "UNLOADED"
                 status = "200 OK"

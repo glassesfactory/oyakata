@@ -11,17 +11,6 @@ from threading import RLock
 from .error import ProcessError, ProcessConflict, ProcessNotFound
 
 
-def _create_logger(name, level=None):
-    logger = logging.getLogger(name)
-    handler = logging.StreamHandler()
-    #LTVS ふぉーまっとにすっか
-    logger.addHandler(handler)
-    if not level:
-        level = logging.INFO
-    logger.setLevel(level)
-    return logger
-
-
 class ProcessManager(object):
     """
     manage process.
@@ -31,25 +20,26 @@ class ProcessManager(object):
         self._sessions = OrderedDict()
         self.processes = OrderedDict()
         self.running_process = OrderedDict()
-        self.loggers = {}
-        self.loggers['system'] = _create_logger('system')
+        self.set_logging()
         self._lock = RLock()
 
         self._load_registerd_jobs()
 
     def load(self, config, sessionid):
         u"""load new application and add job to jobfile"""
-
-        try:
-            self._load_process(config, sessionid)
-        except ProcessError:
-            raise
+        logging.info("load config")
+        with self._lock:
+            try:
+                self._load_process(config, sessionid)
+            except ProcessError:
+                raise
 
         self._save_job(sessionid, config)
         return
 
     def unload(self, sessionid, name):
         u"""unload application and remove job from jobfile"""
+        logging.info("unload config")
         if not sessionid in self._sessions:
             raise ProcessNotFound()
 
@@ -65,7 +55,7 @@ class ProcessManager(object):
 
     def reload(self, config, sessionid):
         u"""reload process from updated config"""
-
+        logging.info("reload config")
         #not found target application
         if not sessionid in self._sessions:
             raise ProcessNotFound()
@@ -123,6 +113,9 @@ class ProcessManager(object):
         try:
             self.restart_job(state, config)
         except:
+            logging.error("failed reload config: %s" % str(config.name))
+            logging.info("config not reloaded")
+
             raise
 
         with self._lock:
@@ -152,15 +145,14 @@ class ProcessManager(object):
                 #logging kill process
                 #logger["p.pid"].info("stop_process %s:%s" %(p.name, p.pid))
                 p.kill()
+        logging.info("stop process: %s" % state.name)
 
     def restart_job(self, state, config):
         u"""job を再起動する"""
         if not state.stop:
-            print "reload state:: stop process..."
             self.stop_job(state)
         state.stop = False
         state.update(config)
-        print "reload state:: restart process..."
         self.start_job(state)
 
     def _spawn_processes(self, state):
@@ -168,7 +160,6 @@ class ProcessManager(object):
         num_to_start = state.numprocess - len(state.running)
         for i in range(num_to_start):
             self._spawn_process(state)
-        # logger.info('started with pid')
 
     def _spawn_process(self, state):
         u"""process を立ち上げる"""
@@ -176,6 +167,7 @@ class ProcessManager(object):
         state.queue(p)
         pid = p.pid
         self.running_process[pid] = p
+        logging.info("start with pid: %s" % str(pid))
 
     def _load_registerd_jobs(self):
         u"""job list に登録済みのprocessを立ち上げる"""
@@ -208,6 +200,7 @@ class ProcessManager(object):
         self.jobs_list = jobs_list
 
     def _save_job(self, sessionid, config):
+        u"""job を保存します"""
         job = {}
         job[sessionid] = config.to_dict()
         self.jobs_list["oyakata_jobs"].append(job)
@@ -218,6 +211,8 @@ class ProcessManager(object):
                 f.write(json.dumps(self.jobs_list))
                 f.truncate()
             except IOError:
+                logging.error("failed saving config: %s" % str(sessionid))
+                logging.info("job file not saved")
                 print "oh"
 
     def _delete_job(self, sessionid, config):
@@ -237,6 +232,8 @@ class ProcessManager(object):
                 f.write(json.dumps(self.jobs_list))
                 f.truncate()
             except IOError:
+                logging.error("failed delete config: %s" % str(sessionid))
+                logging.info("job file not deleted")
                 print "nan...dato...!"
 
     def _update_job(self, sessionid, config):
@@ -256,16 +253,26 @@ class ProcessManager(object):
                 f.write(json.dumps(self.jobs_list))
                 f.truncate()
             except IOError:
+                logging.error("failed update config: %s" % str(sessionid))
+                logging.info("job file not updated")
                 print "e..."
 
-    def interrupt(self):
-        self.running = False
-
-    def _oyakata_logging(self, log):
-        return
-
-    def _process_logging(self, log):
-        return
+    def set_logging(self, level=None):
+        logger = logging.getLogger()
+        if self.config.back_log is not None:
+            handler = logging.FileHandler(self.config.back_log)
+        else:
+            handler = logging.StreamHandler()
+        if self.config.log_format == "ltsv":
+            format = r"loglevel:%(levelname)s    time:[%(asctime)s]    process:[%(process)d]    body:[%(message)s]"
+        else:
+            format = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
+        datefmt = r"%Y/%m/%d:%H:%M:%S"
+        handler.setFormatter(logging.Formatter(format, datefmt))
+        logger.addHandler(handler)
+        if not level:
+            level = logging.INFO
+        logger.setLevel(level)
 
 
 class Process(object):
