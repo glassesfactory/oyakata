@@ -85,8 +85,31 @@ class OyakataServer(object):
 
     def manage(self, *args, **kwargs):
         print "manage process"
+        # environ = kwargs["environ"]
         sessionid = args[1][1]
-        params = self._parse_params(environ['wsgi.input'].read())
+        cmd = args[1][2]
+        name = args[1][3]
+        state = self.manager._sessions[sessionid][name]
+        try:
+            if cmd == "start":
+                if not state.stop:
+                    raise ProcessError(reason="process is already running.")
+                state.stop = False
+                self.manager.start_job(state)
+            elif cmd == "stop":
+                if state.stop:
+                    raise ProcessError(reason="process is already stoped.")
+                self.manager.stop_job(state)
+            elif cmd == "restart":
+                self.manager.restart_job(state)
+            res = "OK"
+            status = "200 OK"
+        except ProcessError as e:
+            res = e.reason
+            status = str(e.errno)
+        except:
+            raise
+        return status, res
 
     def wsgi_app(self, environ, start_response):
         params = environ.get('PATH_INFO').split('/')[1:]
