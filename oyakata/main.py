@@ -40,6 +40,7 @@ class OyakataCli(object):
         cmd = self.commands[cmdname]
         cmd_argv = [cmdname] + self.args['<args>']
         cmd_args = docopt(cmd.__doc__, argv=cmd_argv)
+
         try:
             cmd.run(cmd_args, self.config)
         except RuntimeError, e:

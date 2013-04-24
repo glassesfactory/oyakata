@@ -145,14 +145,16 @@ class ProcessManager(object):
                 #logging kill process
                 #logger["p.pid"].info("stop_process %s:%s" %(p.name, p.pid))
                 p.kill()
-        logging.info("stop process: %s" % state.name)
+        logging.info("stop process: %s" % state.config.name)
 
-    def restart_job(self, state, config):
+    def restart_job(self, state, config=None):
         u"""job を再起動する"""
         if not state.stop:
             self.stop_job(state)
         state.stop = False
-        state.update(config)
+        if config:
+            state.update(config)
+        state.reset()
         self.start_job(state)
 
     def _spawn_processes(self, state):
@@ -344,6 +346,9 @@ class ProcessState(object):
         self.config = config
         self.env = env
         self.numprocess = int(max(self.config.settings.get('numprocess', 1), self.numprocess))
+
+    def reset(self):
+        self.numprocess = int(self.config.settings.get("numprocess", 1))
 
     def queue(self, p):
         self.running.append(p)

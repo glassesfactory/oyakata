@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
+import os
 import sys
 import copy
-import argparse
 
 
 KNOWN_COMMANDS = []
