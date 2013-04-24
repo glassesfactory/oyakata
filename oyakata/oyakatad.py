@@ -19,6 +19,7 @@ Options
 """
 
 import sys
+import json
 from setproctitle import setproctitle
 from meinheld import server
 from docopt import docopt
@@ -48,10 +49,7 @@ class OyakataServer(object):
             register new job
             """
             print "resiger new job"
-            params = self._parse_params(environ['wsgi.input'].read())
-            name = params.pop("name")
-            cmd = params.pop("cmd")
-            config = ProcessConfig(name, cmd, **params)
+            config = self._get_config(environ)
             try:
                 self.manager.load(config, sessionid)
                 res = "OK"
@@ -75,11 +73,11 @@ class OyakataServer(object):
                 status = str(e.errno)
         elif method == "put":
             """
-            update jobs
+            reload jobs
             """
-            print "put"
             try:
-                self.manager.update(config, sessionid)
+                config = self._get_config(environ)
+                self.manager.reload(config, sessionid)
                 res = "OK"
                 status = "200 OK"
             except ProcessError as e:
@@ -107,8 +105,25 @@ class OyakataServer(object):
         start_response(status, response_headers)
         return [res]
 
+    def _get_config(self, environ):
+        params = self._parse_params(environ['wsgi.input'].read())
+        for key, param in params.iteritems():
+            if isinstance(param, unicode):
+                param = str(param)
+                params[key] = param
+            elif isinstance(param, list):
+                new_param = []
+                for p in param:
+                    if isinstance(p, unicode):
+                        p = str(p)
+                    new_param.append(p)
+                params[key] = new_param
+        name = params.pop("name")
+        cmd = params.pop("cmd")
+        return ProcessConfig(name, cmd, **params)
+
     def _parse_params(self, param_str):
-        return dict([tuple(arg.split("=")) for arg in param_str.split('&')])
+        return json.loads(param_str)
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)

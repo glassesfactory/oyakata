@@ -49,8 +49,8 @@ class Load(Command):
             params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
             try:
                 url = self.config.server + '/jobs/%s' % appname
-                config = ProcessConfig(name, cmd, **params).to_dict()
-                res = requests.post(url, config)
+                config = ProcessConfig(name, cmd, **params).to_json()
+                res = requests.post(url, config, headers={"Accept": "application/json"})
                 if res.status_code != 200:
                     if res.status_code == 409:
                         print "%r is already loaded." % appname

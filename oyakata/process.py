@@ -5,7 +5,6 @@ import os
 import urllib
 import logging
 import subprocess
-import select
 from collections import OrderedDict, deque
 from threading import RLock
 
@@ -54,19 +53,38 @@ class ProcessManager(object):
         if not sessionid in self._sessions:
             raise ProcessNotFound()
 
-        print self._sessions[sessionid]
         state = self._sessions[sessionid][name]
         config = state.config
-        try:
-            self._unload_process(state, config, sessionid)
-        except ProcessError:
-            raise
+        with self._lock:
+            try:
+                self._unload_process(state, config, sessionid)
+            except ProcessError:
+                raise
         #remove job from jobfile
         self._delete_job(sessionid, config)
 
-    def reload(self, sessionid, config):
+    def reload(self, config, sessionid):
         u"""reload process from updated config"""
-        pass
+
+        #not found target application
+        if not sessionid in self._sessions:
+            raise ProcessNotFound()
+
+        #has target application process
+        #追加に鳴った場合どうすっかな
+        try:
+            state = self._sessions[sessionid][config.name]
+        except KeyError:
+            raise ProcessNotFound()
+
+        with self._lock:
+            try:
+                self._reload_process(state, config, sessionid)
+            except ProcessError:
+                raise
+
+        #update job file
+        self._update_job(sessionid, config)
 
     def _load_process(self, config, sessionid):
         u"""processを読み込む"""
@@ -92,17 +110,29 @@ class ProcessManager(object):
             self.stop_job(state)
         except:
             raise
+        #lock するかなー
         self._sessions[sessionid].pop(config.name)
         try:
             del self._sessions[sessionid]
         except KeyError:
             pass
 
+    def _reload_process(self, state, config, sessionid):
+        u"""process を新しい設定からリロードする"""
+
+        try:
+            self.restart_job(state, config)
+        except:
+            raise
+
+        with self._lock:
+            #新しい奴に入れ替え
+            self._sessions[sessionid][config.name] = state
+
     def start_job(self, state):
         u"""job を開始する"""
         if state.stop:
             return
-
         if len(state.running) < state.numprocess:
             self._spawn_processes(state)
 
@@ -116,12 +146,22 @@ class ProcessManager(object):
                 try:
                     p = group.popleft()
                 except IndexError:
+                    #state.running = group
                     break
-
                 self.running_process.pop(p.pid)
                 #logging kill process
                 #logger["p.pid"].info("stop_process %s:%s" %(p.name, p.pid))
                 p.kill()
+
+    def restart_job(self, state, config):
+        u"""job を再起動する"""
+        if not state.stop:
+            print "reload state:: stop process..."
+            self.stop_job(state)
+        state.stop = False
+        state.update(config)
+        print "reload state:: restart process..."
+        self.start_job(state)
 
     def _spawn_processes(self, state):
         u"""指定された数で process を立ち上げる"""
@@ -184,10 +224,9 @@ class ProcessManager(object):
         u"""job list から job を削除する"""
         jobs = self.jobs_list["oyakata_jobs"]
         for job in jobs:
-            job_sessionid = job.keys()[0]
-            job_name = job[job_sessionid].get('name', None)
-            if job_sessionid == sessionid and config.name == job_name:
-                print job
+            job_sid = job.keys()[0]
+            job_name = job[job_sid].get('name', None)
+            if job_sid == sessionid and config.name == job_name:
                 jobs.remove(job)
                 break
         self.jobs_list["oyakata_jobs"] = jobs
@@ -200,25 +239,33 @@ class ProcessManager(object):
             except IOError:
                 print "nan...dato...!"
 
-    def stop_all(self):
-        return
-
-    def watch(self):
-        # for p in self.processes:
-        try:
-            self.running = True
-            while self.running:
-                pass
-        except select.error:
-            pass
-        finally:
-            logger = self.loggers['system']
-            logger.info('sending SIGTERM to all processs')
-            for p in self.processs:
-                p.terminate()
+    def _update_job(self, sessionid, config):
+        u"""job list を更新する"""
+        jobs = self.jobs_list["oyakata_jobs"]
+        for job in jobs:
+            job_sid = job.keys()[0]
+            job_name = job[job_sid].get('name', None)
+            if job_sid == sessionid and config.name == job_name:
+                job[sessionid] = config.to_dict()
+                break
+        self.jobs_list["oyakata_jobs"] = jobs
+        jobs_path = self.config.jobs_file
+        with open(jobs_path, "w") as f:
+            try:
+                f.seek(0)
+                f.write(json.dumps(self.jobs_list))
+                f.truncate()
+            except IOError:
+                print "e..."
 
     def interrupt(self):
         self.running = False
+
+    def _oyakata_logging(self, log):
+        return
+
+    def _process_logging(self, log):
+        return
 
 
 class Process(object):
@@ -277,14 +324,19 @@ class ProcessState(object):
         cmd = self.config.cmd
         config_args = self.config.settings
         cmd_args = config_args.get("args", None)
-        exc_cmd = [cmd, cmd_args]
+        if not isinstance(cmd_args, list):
+            cmd_args = [cmd_args]
+        #logging
+        print "in make_process:: %s: %s" % (cmd, " ".join(cmd_args))
+        exc_cmd = [cmd]
+        exc_cmd.extend(cmd_args)
         cwd = urllib.unquote(config_args.get("cwd"))
         return subprocess.Popen(exc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, cwd=cwd)
 
-    def update(self, config, env):
+    def update(self, config, env=None):
         self.config = config
         self.env = env
-        self.numprocess = max(self.config.settings.get('numprocess', 1), self.numprocess)
+        self.numprocess = int(max(self.config.settings.get('numprocess', 1), self.numprocess))
 
     def queue(self, p):
         self.running.append(p)
@@ -300,5 +352,4 @@ class ProcessState(object):
 
     def list_process(self):
         return list(self.running)
-
 

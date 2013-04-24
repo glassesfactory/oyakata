@@ -39,7 +39,7 @@ class Procfile(object):
         args_ = shlex.split(v)
         cmd = args_[0]
         if len(args_) > 1:
-            args = args_[1]
+            args = args_[1:]
         else:
             args = []
         return cmd, args
