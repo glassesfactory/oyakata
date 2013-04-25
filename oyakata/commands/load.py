@@ -6,7 +6,6 @@ import sys
 import requests
 from requests.exceptions import ConnectionError
 from .base import Command
-from oyakata.error import ProcessError, ProcessConflict
 from oyakata.procfile import Procfile
 from oyakata.process import ProcessConfig
 
@@ -18,9 +17,8 @@ class Load(Command):
 
     Options:
         -h, --help
-        -c concurrency,--concurrency concurrency  Specify the number processesses
-                                                  to run.
-        --app APP
+        -c concurrency,--concurrency concurrency  Specify the number processesses to run.
+        --app APP                                 Application
     """
 
     name = "load"

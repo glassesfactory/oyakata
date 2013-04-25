@@ -12,13 +12,14 @@ from .error import ProcessError, ProcessConflict, ProcessNotFound
 
 
 class ProcessManager(object):
-    """manage process.
+    u"""manage process.
     プロセスを管理します。
 
-    Attributes:
-        config: manager config object.
-        running_process: running process dict.
+    :param config: manager config object.
+    :param running_process: running process dict.
+
     """
+
     def __init__(self, config):
         self.config = config
         self.jobs_file = config.jobs_file
@@ -34,9 +35,9 @@ class ProcessManager(object):
         u"""load new application and add job to jobfile
         アプリケーションを追加し、ジョブファイルに追記します。
 
-        Args:
-            config: load config object.
-            sessionid:  session id.
+        :param config: load config object.
+        :param sessionid:  session id.
+
         """
         logging.info("load config")
         with self._lock:
@@ -51,9 +52,9 @@ class ProcessManager(object):
         u"""unload application and remove job from jobfile
         アプリケーションを停止し、ジョブリストからも削除します。
 
-        Args:
-            sessionid: session id.
-            name: unload process name.
+        :param sessionid: session id.
+        :param name: unload process name.
+
         """
         logging.info("unload config")
         if not sessionid in self._sessions:
@@ -73,9 +74,9 @@ class ProcessManager(object):
         u"""reload application from updated config
         新しいコンフィグを元にアプリケーションを再起動します。
 
-        Args:
-            config: reload new config.
-            sessionid: session id.
+        :param config: reload new config.
+        :param sessionid: session id.
+
         """
         logging.info("reload config")
         #not found target application...
@@ -99,8 +100,7 @@ class ProcessManager(object):
         self._update_job(sessionid, config)
 
     def list(self):
-        u"""
-        list up registered application.
+        u"""list up registered application.
         現在登録されている job　一覧
 
         Returns:
@@ -122,8 +122,9 @@ class ProcessManager(object):
         processを読み込む
 
         Args:
-            config: config object.
-            sessionid: session id.
+        :param config: config object.
+        :param sessionid: session id.
+
         """
         if sessionid in self._sessions:
             raise ProcessConflict()
@@ -184,8 +185,7 @@ class ProcessManager(object):
         u"""start job
         job を開始する
 
-        Args:
-            state: process state object.
+        :param state: process state object.
         """
         if state.stop:
             return
@@ -196,8 +196,7 @@ class ProcessManager(object):
         u"""stop job
         job を停止する
 
-        Args:
-            state: process state object.
+        :param state: process state object.
         """
         with self._lock:
             state.numprocess = 0
@@ -216,9 +215,8 @@ class ProcessManager(object):
         u"""restart job.
         job を再起動する
 
-        Args:
-            state: process state object.
-            config: updated process config.
+        :param state: process state object.
+        :param config: updated process config.
         """
         if not state.stop:
             self.stop_job(state)
@@ -354,8 +352,7 @@ class ProcessManager(object):
         u"""set logging configuration.
         logging の設定をします。
 
-        Args:
-            level:  default log level.
+        :param level:  default log level.
         """
         logger = logging.getLogger()
         if self.config.back_log is not None:
@@ -382,9 +379,10 @@ class ProcessConfig(object):
     プロセスの設定オブジェクト
 
     Attributes:
-        name: process name.
-        cmd: exec command.
-        settings: process settings.
+    :param name: process name.
+    :param cmd: exec command.
+    :param settings: process settings.
+
     """
     def __init__(self, name, cmd, **settings):
         self.name = name
@@ -396,10 +394,8 @@ class ProcessConfig(object):
         u"""create ProcessConfig instance from dict object.
         dict から ProcessConfig インスタンスを生成します。
 
-        Args:
-            config: config dict
-        Returns:
-            new ProcessConfig instance.
+        :param config: config dict
+
         """
         d = config.copy()
         try:
@@ -413,8 +409,6 @@ class ProcessConfig(object):
         u"""convert to dict.
         dict に変換します。
 
-        Returns:
-            process config dict object.
         """
         d = dict(name=self.name, cmd=self.cmd)
         d.update(self.settings)
@@ -423,9 +417,6 @@ class ProcessConfig(object):
     def to_json(self):
         u"""convert to json.
         json に変換します。
-
-        Returns:
-            process config json object.
         """
         return json.dumps(self.to_dict())
 
@@ -434,13 +425,12 @@ class ProcessState(object):
     u"""manage process state object.
     プロセスの状態を管理するオブジェクトです。
 
-    Attributes:
-        config: session config
-        sessionid: session id
-        env: process environment.
-        running: running process queue.
-        stop: process to see if it is stopped
-        numprocess: process num.
+    :param config: session config
+    :param sessionid: session id
+    :param env: process environment.
+    :param running: running process queue.
+    :param stop: process to see if it is stopped
+    :param numprocess: process num.
     """
     def __init__(self, config, sessionid, env=None):
         self.config = config
@@ -475,9 +465,8 @@ class ProcessState(object):
         u"""update process state form new config.
         新しいコンフィグから ProcessState オブジェクトを更新します。
 
-        Args:
-            config: config object.
-            env: process environment
+        :param config: config object.
+        :param env: process environment
         """
         self.config = config
         self.env = env
@@ -503,10 +492,8 @@ class ProcessState(object):
         u"""popleft process from queue.
         キューの先頭からプロセスを削除し、そのプロセスを返します。
 
-        Args:
-            p: process
-        Returns:
-            removed process.
+        :param p: process
+
         """
         p = None
         try:
@@ -519,8 +506,8 @@ class ProcessState(object):
         u"""remove process form queue.
         キューからプロセスを削除します。
 
-        Args:
-            p: Process you want to delete
+        :param p: Process you want to delete
+
         """
         try:
             self.running.remove(p)
@@ -530,8 +517,5 @@ class ProcessState(object):
     def list_process(self):
         u"""running process
         動作中のプロセスをリストにして返します。
-
-        Returns:
-            running process list object.
         """
         return list(self.running)

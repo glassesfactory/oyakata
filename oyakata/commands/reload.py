@@ -17,8 +17,7 @@ class Reload(Command):
 
     Options:
         -h, --help
-        -c concurrency,--concurrency concurrency  Specify the number processesses
-                                                  to run.
+        -c concurrency,--concurrency concurrency  Specify the number processesses to run.
         --app APP
     """
 

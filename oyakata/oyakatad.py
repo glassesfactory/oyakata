@@ -6,11 +6,11 @@ usage: oyakatad [--version] [-c CONFIG| --config=CONFIG] [--bind=ADDRESS]
                 [--log_level=LOG_LEVEL] [--log_format=FORMAT]
 
 
-Options
+Options:
     -h, --help                     show this help message and exit
     --version                      show version
     -c CONFIG, --config=CONFIG     configuration
-    --pidfile=PIDFILE
+    --pidfile=pidfile              pid file
     --back_log=BACK_LOG            default back log
     --error_log=error_log          logging error
     --log_level=LOG_LEVEL          logging level
@@ -35,10 +35,10 @@ LOG_DATE_FORMAT = r"%Y-%m-%d %H:%M:%S"
 class OyakataServer(object):
     u"""oyakata server
 
-    Attributes:
-        config: server config.
-        manager: process manager.
-        pid: server pid file.
+    :param config: server config.
+    :param manager: process manager.
+    :param pid: server pid file.
+
     """
     def __init__(self, config):
         self.config = config
