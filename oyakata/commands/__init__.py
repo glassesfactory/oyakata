@@ -5,7 +5,6 @@ from oyakata.commands import (
     load,
     unload,
     reload,
-    bals,
     muska,
     start,
     stop,
