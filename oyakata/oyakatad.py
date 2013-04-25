@@ -33,6 +33,13 @@ LOG_DATE_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
 
 class OyakataServer(object):
+    u"""oyakata server
+
+    Attributes:
+        config: server config.
+        manager: process manager.
+        pid: server pid file.
+    """
     def __init__(self, config):
         self.config = config
         self.pid = None
@@ -40,6 +47,7 @@ class OyakataServer(object):
         setproctitle('oyakatad')
 
     def jobs(self, *args, **kwargs):
+        u"""manage add / remove / update jobs"""
         environ = kwargs["environ"]
         method = kwargs["method"]
         sessionid = args[1][1]
@@ -84,7 +92,7 @@ class OyakataServer(object):
         return status, res
 
     def manage(self, *args, **kwargs):
-        # environ = kwargs["environ"]
+        u"""manage start / stop / restart jobs"""
         sessionid = args[1][1]
         cmd = args[1][2]
         name = args[1][3]
@@ -111,7 +119,7 @@ class OyakataServer(object):
         return status, res
 
     def list(self, *args, **kwargs):
-        print "list up registered process"
+        u"""list up registered applications."""
         try:
             res = self.manager.list()
             status = "200 OK"
