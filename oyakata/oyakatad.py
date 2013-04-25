@@ -18,8 +18,12 @@ Options:
 
 """
 
+import os
+import pwd
+import grp
 import sys
 import json
+import logging
 from setproctitle import setproctitle
 from meinheld import server
 from docopt import docopt
@@ -42,7 +46,7 @@ class OyakataServer(object):
     """
     def __init__(self, config):
         self.config = config
-        self.pid = None
+        self._setup()
         self.manager = ProcessManager(config)
         setproctitle('oyakatad')
 
@@ -163,6 +167,39 @@ class OyakataServer(object):
 
     def _parse_params(self, param_str):
         return json.loads(param_str)
+
+    def _setup(self):
+        if not self.config:
+            return
+
+        if self.config.pidfile is not None:
+            self._setpid()
+
+        if self.config.user is not None:
+            try:
+                uid = pwd.getpwnam(self.config.user).pw_uid
+            except KeyError:
+                logging.error("user not found:: %s" % self.config.user)
+                logging.info("failed set uid")
+                raise
+            os.setuid(uid)
+
+        if self.config.group is not None:
+            try:
+                gid = grp.getgrnam(self.config.group).gr_gid
+            except KeyError:
+                raise
+                logging.error("group not found:: %s" % self.config.group)
+                logging.info("failed set gid")
+            os.setgid(gid)
+
+    def _setpid(self):
+        pid = os.getpid()
+        pidfile = self.config.pidfile
+        with open(pidfile, "w") as f:
+            f.seek(0)
+            f.write("%d" % pid)
+            f.truncate()
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)

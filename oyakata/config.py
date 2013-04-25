@@ -63,8 +63,8 @@ class OyakatadConfig(object):
             self.error_log = oyakata_cfg.get("error_log", None)
             self.log_level = oyakata_cfg.get("log_level", "info")
             self.log_format = oyakata_cfg.get("log_format", "ltsv")
-            self.uid = oyakata_cfg.get("uid", None)
-            self.gid = oyakata_cfg.get("gid", None)
+            self.user = oyakata_cfg.get("user", None)
+            self.group = oyakata_cfg.get("group", None)
             self.jobs_file = oyakata_cfg.get("jobs_file", "oyakata_jobs.dat")
 
     def get_bind(self):
