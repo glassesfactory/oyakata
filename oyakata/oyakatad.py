@@ -84,7 +84,6 @@ class OyakataServer(object):
         return status, res
 
     def manage(self, *args, **kwargs):
-        print "manage process"
         # environ = kwargs["environ"]
         sessionid = args[1][1]
         cmd = args[1][2]
@@ -107,6 +106,18 @@ class OyakataServer(object):
         except ProcessError as e:
             res = e.reason
             status = str(e.errno)
+        except:
+            raise
+        return status, res
+
+    def list(self, *args, **kwargs):
+        print "list up registered process"
+        try:
+            res = self.manager.list()
+            status = "200 OK"
+        except ProcessError as e:
+            res = e.reason
+            status = str(e.reason)
         except:
             raise
         return status, res

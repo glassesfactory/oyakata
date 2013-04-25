@@ -23,7 +23,7 @@ class ProcessManager(object):
         self.set_logging()
         self._lock = RLock()
 
-        self._load_registerd_jobs()
+        self._load_registered_jobs()
 
     def load(self, config, sessionid):
         u"""load new application and add job to jobfile"""
@@ -75,6 +75,22 @@ class ProcessManager(object):
 
         #update job file
         self._update_job(sessionid, config)
+
+    def list(self):
+        u"""
+        list up registered application.
+        現在登録されている job　一覧
+        """
+        jobs = self._sessions
+        job_str = ""
+        for job in jobs:
+            for k, v in jobs[job].iteritems():
+                job_str += str(k) + " | "
+                job_str += "running" if not v.stop else "stop"
+                job_str += " | "
+                job_str += str(v.numprocess)
+                job_str += "\n"
+        return job_str
 
     def _load_process(self, config, sessionid):
         u"""processを読み込む"""
@@ -171,7 +187,7 @@ class ProcessManager(object):
         self.running_process[pid] = p
         logging.info("start with pid: %s" % str(pid))
 
-    def _load_registerd_jobs(self):
+    def _load_registered_jobs(self):
         u"""job list に登録済みのprocessを立ち上げる"""
         jobs_path = self.config.jobs_file
         if not os.path.isfile(jobs_path):
