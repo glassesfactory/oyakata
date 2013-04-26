@@ -56,43 +56,34 @@ class OyakataServer(object):
         method = kwargs["method"]
         sessionid = args[1][1]
         #u-mu
-        if method == "post":
-            """
-            register new job
-            """
-            config = self._get_config(environ)
-            try:
+        try:
+            if method == "post":
+                """
+                register new job
+                """
+                config = self._get_config(environ)
                 self.manager.load(config, sessionid)
                 res = "OK"
                 status = "200 OK"
-            except ProcessError as e:
-                res = e.reason
-                status = str(e.errno)
-        elif method == "delete":
-            """
-            delete jobs
-            """
-            name = args[1][2]
-            try:
+            elif method == "delete":
+                """
+                delete jobs
+                """
+                name = args[1][2]
                 self.manager.unload(sessionid, name)
                 res = "UNLOADED"
                 status = "200 OK"
-            except ProcessError as e:
-                res = e.reason
-                status = str(e.errno)
-        elif method == "put":
-            """
-            reload jobs
-            """
-            try:
+            elif method == "put":
+                """
+                reload jobs
+                """
                 config = self._get_config(environ)
                 self.manager.reload(config, sessionid)
                 res = "OK"
                 status = "200 OK"
-            except ProcessError as e:
-                res = e.reason
-                status = str(e.errno)
-
+        except ProcessError as e:
+            res = e.reason
+            status = str(e.errno)
         return status, res
 
     def manage(self, *args, **kwargs):

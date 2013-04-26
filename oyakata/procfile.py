@@ -8,6 +8,13 @@ PROC_PATTERN = r'([a-zA-Z0-9_-]+):(.*)'
 
 
 class Procfile(object):
+    u"""Procfile object.
+    Procfile オブジェクト
+
+    :param root: application working directory.
+    :param settings: parsed Procfile parameters
+
+    """
     def __init__(self, procfile, root=None):
         self.procfile = procfile
 
@@ -23,9 +30,17 @@ class Procfile(object):
         self._appname = None
 
     def processes(self):
+        u"""return processes
+        Procfile に記述されているプロセスを返します。
+        """
         return self.settings.items()
 
     def parse(self, proc):
+        u"""parse Procfile
+        Procfile をパースします。
+
+        :param proc: target Procfile.
+        """
         procfile = {}
         with open(proc) as f:
             for line in f.readlines():
@@ -36,6 +51,11 @@ class Procfile(object):
         return procfile
 
     def parse_cmd(self, v):
+        u"""parse command. from Procfile string.
+        Procfile の文字列から実行したいコマンドをパースして返します。
+
+        :param v: parse string.
+        """
         args_ = shlex.split(v)
         cmd = args_[0]
         if len(args_) > 1:
@@ -45,6 +65,7 @@ class Procfile(object):
         return cmd, args
 
     def get_appname(self):
+        u"""return appname"""
         if not self._appname:
             path = os.getcwd() if self.root == "." else self.root
             self._appname = os.path.split(path)[1]

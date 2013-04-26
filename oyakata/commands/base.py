@@ -66,4 +66,11 @@ class Command(object):
                 settings[key] = v
         return settings
 
+    def _procfile_exist(self, procfile):
+        if not os.path.isfile(procfile):
+            if procfile is not None:
+                raise RuntimeError("procfile %r not found" % procfile)
+            else:
+                return None
+
 Command = CommandMeta('Command', (Command,), {})

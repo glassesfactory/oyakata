@@ -5,12 +5,18 @@ import os
 import tomlpython as toml
 
 
-class Config(object):
+class CliConfig(object):
     """
     oyakata config obj
     """
     def __init__(self, args):
         self.server = args['--url'] or 'http://127.0.0.1:8823'
+        if '--root'in args:
+            self.root = args['--url']
+        else:
+            self.root = os.getcwd()
+
+        self.procfile = args['--procfile'] or 'Procfile'
 
 
 class OyakatadConfig(object):

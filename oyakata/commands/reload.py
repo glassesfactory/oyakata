@@ -25,26 +25,19 @@ class Reload(Command):
     short_descr = "reload a Procfile application"
 
     def run(self, args, config):
-        proc = "Procfile"
-        if '--procfile' in args:
-            proc = args['--procfile']
-
-        if not os.path.isfile(proc):
-            if args['--procfile'] is not None:
-                raise RuntimeError("procfile %r not found" % proc)
-            else:
-                return None
         self.config = config
-        self.load_procfile(proc, args)
+        procfile_path = self.config.procfile
+        self._procfile_exist(procfile_path)
+        self.load_procfile(procfile_path, args)
 
-    def load_procfile(self, procfile, args):
-        proc = Procfile(procfile)
+    def load_procfile(self, procfile_path, args):
+        procfile = Procfile(procfile_path)
         concurrency = self.parse_concurrency(args)
-        appname = self.default_appname(proc, args)
+        appname = self.default_appname(procfile, args)
 
-        for name, cmd_str in proc.processes():
-            cmd, args = proc.parse_cmd(cmd_str)
-            params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(proc.root))
+        for name, cmd_str in procfile.processes():
+            cmd, args = procfile.parse_cmd(cmd_str)
+            params = dict(args=args, numprocess=concurrency.get(name, 1), cwd=os.path.abspath(procfile.root))
             try:
                 url = self.config.server + '/jobs/%s' % appname
                 config = ProcessConfig(name, cmd, **params).to_json()

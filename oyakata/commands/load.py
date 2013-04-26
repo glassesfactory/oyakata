@@ -25,17 +25,10 @@ class Load(Command):
     short_descr = "load a Procfile application"
 
     def run(self, args, config):
-        proc = "Procfile"
-        if '--procfile' in args:
-            proc = args['--procfile']
-
-        if not os.path.isfile(proc):
-            if args['--procfile'] is not None:
-                raise RuntimeError("procfile %r not found" % proc)
-            else:
-                return None
         self.config = config
-        self.load_procfile(proc, args)
+        procfile = self.config.procfile
+        self._procfile_exist(procfile)
+        self.load_procfile(procfile, args)
 
     def load_procfile(self, procfile, args):
         proc = Procfile(procfile)

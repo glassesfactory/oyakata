@@ -17,7 +17,7 @@ Options:
 import sys
 from . import __version__
 from oyakata.commands import get_commands
-from oyakata.config import Config
+from oyakata.config import CliConfig
 from docopt import docopt
 
 
@@ -28,7 +28,7 @@ class OyakataCli(object):
         version_str = "oyakata version %s" % __version__
         doc_str = "%s%s" % (__doc__, self._commands_help())
         self.args = docopt(doc_str, argv=argv, version=version_str, options_first=True)
-        self.config = Config(self.args)
+        self.config = CliConfig(self.args)
 
     def run(self):
         cmdname = self.args['<command>']
