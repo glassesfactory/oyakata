@@ -16,7 +16,7 @@ Workflow
 ----------------
 
 1. Launch Oyakata Daemon
-	`oyakatad -c /path/to/oyakata.toml --daemon`
+	`oyakatad -c /path/to/oyakata.toml`
 2. use oyakata to manage your process.
 	`oyakata load`
 

@@ -1,0 +1,1 @@
+{"oyakata_jobs": [{"oyakata": {"numprocess": 1, "cmd": "python", "name": "dummy", "args": ["dummy.py"], "cwd": "/work/hageee/oyakata"}}]}

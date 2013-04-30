@@ -1,0 +1,6 @@
+build/*
+dist/*
+*.egg-info
+
+__pycacsh__/
+docs/_build

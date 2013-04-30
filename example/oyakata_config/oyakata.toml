@@ -1,0 +1,9 @@
+#Oyakatad config file
+
+title = "oyakata config file."
+
+[oyakatad]
+bind = "127.0.0.1:8823"
+pidfile = "oyakata.pid"
+user = "MEGANE"
+group = "staff"
