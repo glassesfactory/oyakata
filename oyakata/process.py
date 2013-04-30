@@ -97,3 +97,16 @@ class ProcessConfig(object):
 
 
 # class Process(object):
+#     def __init__(self, loop, cmd, args=[], uid=None, gid=None,
+#                  env=None, cwd=None):
+#         pass
+
+#     def spawn(self):
+#         pass
+
+#     def stop(self):
+#         pass
+
+#     @property
+#     def active(self):
+#         return
