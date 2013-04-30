@@ -22,6 +22,10 @@ class CliConfig(object):
 class OyakatadConfig(object):
     """
     oyakatad config obj
+
+    :param args: lounch command line args.
+    :param cfg: config object.
+
     """
 
     def __init__(self, args, config_dir):
@@ -56,6 +60,9 @@ class OyakatadConfig(object):
     def parse_config(self, config_path):
         """
         parse config file.
+
+        :param config_path: config file path.
+
         """
         with open(config_path) as f:
             config = toml.parse(f)

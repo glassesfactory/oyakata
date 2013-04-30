@@ -30,7 +30,10 @@ from docopt import docopt
 from . import __version__
 from oyakata.config import OyakatadConfig
 from oyakata.error import ProcessError
-from oyakata.process import ProcessManager, ProcessConfig
+from oyakata.filer import JobFileManager
+from oyakata.manager import ProcessManager
+from oyakata.process import ProcessConfig
+
 
 LOG_ERROR_FORMAT = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
 LOG_DATE_FORMAT = r"%Y-%m-%d %H:%M:%S"
@@ -47,8 +50,15 @@ class OyakataServer(object):
     def __init__(self, config):
         self.config = config
         self._setup()
-        self.manager = ProcessManager(config)
+        self.manager = ProcessManager()
+        self.filer = JobFileManager(config)
+        self._load_registered_jobs()
         setproctitle('oyakatad')
+        self.set_logging()
+
+    def run(self):
+        self.manager.start()
+        self.manager.run()
 
     def jobs(self, *args, **kwargs):
         u"""manage add / remove / update jobs"""
@@ -63,6 +73,7 @@ class OyakataServer(object):
                 """
                 config = self._get_config(environ)
                 self.manager.load(config, sessionid)
+                self.filer.save_job(sessionid, config)
                 res = "OK"
                 status = "200 OK"
             elif method == "delete":
@@ -70,7 +81,9 @@ class OyakataServer(object):
                 delete jobs
                 """
                 name = args[1][2]
+                config = self.manager.get_config(sessionid, name)
                 self.manager.unload(sessionid, name)
+                self.filer.delete_job(sessionid, config)
                 res = "UNLOADED"
                 status = "200 OK"
             elif method == "put":
@@ -79,6 +92,7 @@ class OyakataServer(object):
                 """
                 config = self._get_config(environ)
                 self.manager.reload(config, sessionid)
+                self.filer.update_job(sessionid, config)
                 res = "OK"
                 status = "200 OK"
         except ProcessError as e:
@@ -97,6 +111,7 @@ class OyakataServer(object):
                 if not state.stop:
                     raise ProcessError(reason="process is already running.")
                 state.stop = False
+                state.reset()
                 self.manager.start_job(state)
             elif cmd == "stop":
                 if state.stop:
@@ -184,6 +199,8 @@ class OyakataServer(object):
                 logging.info("failed set gid")
             os.setgid(gid)
 
+        self.jobs_file = self.config.jobs_file
+
     def _setpid(self):
         pid = os.getpid()
         pidfile = self.config.pidfile
@@ -191,6 +208,42 @@ class OyakataServer(object):
             f.seek(0)
             f.write("%d" % pid)
             f.truncate()
+
+    def _load_registered_jobs(self):
+        u"""[private] load registered jobs.
+        job list に登録済みのprocessを立ち上げる
+        """
+        self.filer.load_registered_job()
+        jobs = self.filer.jobs_list["oyakata_jobs"]
+
+        for job in jobs:
+            #うーん
+            sessionid = job.keys()[0]
+            config_dict = job[sessionid]
+            config = ProcessConfig.from_dict(config_dict)
+            self.manager._load_process(config, sessionid)
+
+    def set_logging(self, level=None):
+        u"""set logging configuration.
+        logging の設定をします。
+
+        :param level:  default log level.
+        """
+        logger = logging.getLogger()
+        if self.config.back_log is not None:
+            handler = logging.FileHandler(self.config.back_log)
+        else:
+            handler = logging.StreamHandler()
+        if self.config.log_format == "ltsv":
+            format = r"""loglevel:%(levelname)s    time:[%(asctime)s]    process:[%(process)d]    body:[%(message)s]"""
+        else:
+            format = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
+        datefmt = r"%Y/%m/%d:%H:%M:%S"
+        handler.setFormatter(logging.Formatter(format, datefmt))
+        logger.addHandler(handler)
+        if not level:
+            level = logging.INFO
+        logger.setLevel(level)
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -201,6 +254,11 @@ def run():
     try:
         config = OyakatadConfig(args, "")
         config.load()
+    except IOError:
+        print "config file is not found."
+        sys.exit(1)
+
+    try:
         s = OyakataServer(config)
         bind = config.get_bind()
         server.listen((bind[0], bind[1]))

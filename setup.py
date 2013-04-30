@@ -34,7 +34,8 @@ setup(
       'docopt',
       'requests',
       'toml-python',
-      'meinheld'
+      'meinheld',
+      'pyuv'
     ],
     entry_points="""
       [console_scripts]

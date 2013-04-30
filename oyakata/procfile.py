@@ -35,19 +35,22 @@ class Procfile(object):
         """
         return self.settings.items()
 
-    def parse(self, proc):
+    def parse(self, procfile_path):
         u"""parse Procfile
         Procfile をパースします。
 
         :param proc: target Procfile.
         """
         procfile = {}
-        with open(proc) as f:
-            for line in f.readlines():
-                m = re.search(PROC_PATTERN, line)
-                if not m:
-                    raise Exception('Bad Procfile line')
-                procfile[m.group(1)] = m.group(2)
+        try:
+            with open(procfile_path) as f:
+                for line in f.readlines():
+                    m = re.search(PROC_PATTERN, line)
+                    if not m:
+                        raise Exception('Bad Procfile line')
+                    procfile[m.group(1)] = m.group(2)
+        except IOError:
+            raise
         return procfile
 
     def parse_cmd(self, v):
